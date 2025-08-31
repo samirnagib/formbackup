@@ -1,0 +1,3 @@
+getcomposer.org
+
+export http_proxy=https://proxies.sasp1.oci.i.globo:3128
