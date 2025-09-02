@@ -31,13 +31,13 @@
     <!-- EmailRequisitante -->
     <div class="mb-3">
       <label class="form-label">E-mail</label>
-      <input type="email" name="EmailRequisitante" class="form-control" required onfocus="this.title='Digite o e-mail corporativo do requisitante.'">
+      <input type="email" name="EmailRequisitante" class="form-control" required data-bs-toggle="tooltip" title="Informar o email responsável, pode ser o email da equipe.">
     </div>
 
     <!-- CentroCusto -->
     <div class="mb-3">
       <label class="form-label">Centro de Custo</label>
-      <input type="text" name="CentroCusto" class="form-control" required onfocus="this.title='Informe o centro de custo responsável.'">
+      <input type="text" name="CentroCusto" class="form-control" required data-bs-toggle="tooltip" title="Informe o centro de custo responsável, para controle financeiro.">
     </div>
 
     <!-- Site -->
@@ -56,40 +56,51 @@
     <!-- Projeto -->
     <div class="mb-3">
       <label class="form-label">Projeto</label>
-      <input type="text" name="Projeto" class="form-control" required onfocus="this.title='Informe o nome do projeto relacionado ao backup.'">
+      <input type="text" name="Projeto" class="form-control" required data-bs-toggle="tooltip" title="Informe o nome do projeto/compartment/subscription relacionado ao backup.">
     </div>
 
     <!-- Ambiente -->
     <div class="mb-3">
       <label class="form-label">Ambiente</label>
-      <select name="Ambiente" class="form-select" required onfocus="this.title='Escolha o tipo de ambiente.'">
+      <select name="Ambiente" class="form-select" required data-bs-toggle="tooltip" title="Escolha o tipo de ambiente.">
         <option value="">Selecione</option>
-        <option>Producao</option>
-        <option>Homologacao</option>
-        <option>Desenvolvimento</option>
+        <option value="Producao">Produ&ccedil;&atilde;o</option>
+        <option value="Homologacao">Homologa&ccedil;&atilde;o</option>
+        <option value="Desenvolvimento">Desenvolvimento</option>
       </select>
     </div>
 
     <!-- TipoBackup -->
     <div class="mb-3">
       <label class="form-label">Tipo de Backup</label>
-      <select name="TipoBackup" class="form-select" required onfocus="this.title='Escolha o tipo de backup desejado.'">
+      <select id="TipoBackup" name="TipoBackup" class="form-select" required onfocus="this.title='Escolha o tipo de backup desejado.'">
         <option value="">Selecione</option>
         <option>Arquivos</option>
         <option>BancoDadosOnline</option>
         <option>MaquinaVirtual</option>
       </select>
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Arquivos (Fileserver, DBAAS, Logs)<br>
+        Banco de Dados Online (Oracle, MS SQL Server)<br>
+        Máquina Virtual (VMWare, XCP-ng, Azure VM, e outros )
+      </label>
     </div>
 
     <!-- Recorrencia -->
     <div class="mb-3">
       <label class="form-label">Recorrência</label>
-      <select name="Recorrencia" class="form-select" required onfocus="this.title='Defina a frequência do backup.'">
+      <select name="Recorrencia" class="form-select" required data-bs-toggle="tooltip" title="Defina a frequência do backup.">
         <option value="">Selecione</option>
         <option>Simples</option>
         <option>Comum</option>
         <option>Completa</option>
       </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        <b>Simples</b>: Backup semanal full (Padrão para Máquinas Virtuais, Fileservers de binários ou arquivos de configuração, Banco de Dados de Desenvolvimento/Homologação)<br>
+        Comum: Backup Semanal Full, Incremental Diario (Banco de dados, Fileservers)<br>
+        Completa: Backup Mensal Full, Semanal Full e Incremental diário (Indicado para Banco de Dados, Fileservers,em ambiente de produção)"
+
+      </label>
     </div>
 
     <!-- Armazenamento -->
@@ -181,6 +192,30 @@
       new bootstrap.Tooltip(tooltipTriggerEl);
     });
   });
+</script>
+<script>
+  function mostrarDica() {
+    const selectElement = document.getElementById('TipoBackup');
+    const dicaElement = document.getElementById('dica-tipobkp');
+    const selectedValue = selectElement.value;
+    let dicaTexto = '';
+
+    switch(selectedValue) {
+        case 'Arquivos':
+            dicaTexto = 'A banana é uma fruta rica em potássio.';
+            break;
+        case 'BancoDadosOnline':
+            dicaTexto = 'A maçã ajuda na digestão e na saúde bucal.';
+            break;
+        case 'MaquinaVirtual':
+            dicaTexto = 'A uva é uma ótima fonte de antioxidantes.';
+            break;
+        default:
+            dicaTexto = '';
+    }
+
+    dicaElement.textContent = dicaTexto;
+  }
 </script>
 
 <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
