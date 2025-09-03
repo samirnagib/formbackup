@@ -27,18 +27,27 @@
     <div class="mb-3">
       <label class="form-label">Solicitante</label>
       <input type="text" name="NomeRequisitante" class="form-control" required data-bs-toggle="tooltip" title="Informar o nome completo do responsável, quem irar ser responsável pelas ações e custo desse backup">
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">Informar o nome completo do responsável, quem será responsável pelas ações e custo desse backup</label>
     </div>
 
     <!-- EmailRequisitante -->
     <div class="mb-3">
       <label class="form-label">E-mail</label>
       <input type="email" name="EmailRequisitante" class="form-control" required data-bs-toggle="tooltip" title="Informar o email responsável, pode ser o email da equipe.">
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o email do responsável pelo backup (pode ser o email do grupo)
+      </label>
+
     </div>
 
     <!-- CentroCusto -->
     <div class="mb-3">
       <label class="form-label">Centro de Custo</label>
       <input type="text" name="CentroCusto" class="form-control" required data-bs-toggle="tooltip" title="Informe o centro de custo responsável, para controle financeiro.">
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o centro de custo para esse backup, é para efeitos de cobrança (Chargeback).
+      </label>
+
     </div>
 
     <!-- Site -->
@@ -52,6 +61,10 @@
         <option value="GCP">Google Cloud Platform (GCP)</option>
         <option value="OCI">Oracle Cloud Infrastructure (OCI)</option>
       </select>
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Selecionar qual site está o servidor, banco de dados, maquina virtual, ou fileserver a ser protegido
+      </label>
+
     </div>
 
     <!-- Projeto -->
@@ -75,6 +88,9 @@
         <option value="Homologacao">Homologa&ccedil;&atilde;o</option>
         <option value="Desenvolvimento">Desenvolvimento</option>
       </select>
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Selecionar qual ambiente está servidor, banco de dados, maquina virtual, ou fileserver a ser protegido.
+      </label>
     </div>
 
     <!-- TipoBackup -->
@@ -82,9 +98,9 @@
       <label class="form-label">Tipo de Backup</label>
       <select id="TipoBackup" name="TipoBackup" class="form-select" required onfocus="this.title='Escolha o tipo de backup desejado.'">
         <option value="">Selecione</option>
-        <option>Arquivos</option>
-        <option>BancoDadosOnline</option>
-        <option>MaquinaVirtual</option>
+        <option value="Arquivos">Arquivos</option>
+        <option value="BancoDadosOnline">Banco Dados Online</option>
+        <option value="MaquinaVirtual">Maquina Virtual</option>
       </select>
       <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
         Arquivos (Fileserver, DBAAS, Logs)<br>
@@ -123,7 +139,14 @@
       </select>
       <div class="container-fluid">
         <label for="descricao-tabela">Detalhes do Armazenamento</label>
-        <table class="table table-bordered table-sm" id="descricao-tabela" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        <table class="table table-bordered table-sm" id="descricao-tabela" style="margin-top: 10px; font-family: monospace; font-size: 11px; width: 50%;">
+          <colgroup>
+            <col style="width: 10%;">
+            <col style="width: 15%;">
+            <col style="width: 15%;">
+            <col style="width: 15%;">
+            <col style="width: 10%;">
+          </colgroup>
           <thead class="table-light">
             <tr>
               <th>Tipo</th>
@@ -210,7 +233,7 @@
     <!-- ServidorBD -->
     <div class="mb-3">
       <label class="form-label">Servidor de Banco de Dados</label>
-      <input type="text" name="ServidorBD" class="form-control" onfocus="this.title='Informe o nome do servidor de banco de dados.'">
+      <input type="text" name="ServidorBD" class="form-control" data-bs-toggle="tooltip" title="Informe o nome do servidor de banco de dados.">
       <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
           Informar os Ips/hostnames dos servidores envolvidos no backup, caso seja um backup de dados, Oracle ou Microsoft SQL Server.<br>
       </label>
@@ -219,7 +242,7 @@
     <!-- InstanciaBD -->
     <div class="mb-3">
       <label class="form-label">Instância do BD</label>
-      <input type="text" name="InstanciaBD" class="form-control" onfocus="this.title='Informe a instância do banco de dados.'">
+      <input type="text" name="InstanciaBD" class="form-control" data-bs-toggle="tooltip" title=Informe a instância do banco de dados.">
       <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
           Informar os Ips/hostnames das instancias (listeners) de banco de dados, caso seja um backup de dados Oracle ou Microsoft SQL Server.<br>
       </label>
@@ -229,7 +252,7 @@
     <!-- TipoInstanciaBD -->
     <div class="mb-3">
       <label class="form-label">Tipo de Instância BD</label>
-      <select name="TipoInstanciaBD" class="form-select" onfocus="this.title='Escolha o tipo de instância do banco de dados.'">
+      <select name="TipoInstanciaBD" class="form-select" data-bs-toggle="tooltip" title="Escolha o tipo de instância do banco de dados.">
         <option value="">Selecione</option>
         <option value="SingleInstance">Single Instance</option>
         <option value="Oracle RAC">Oracle RAC</option>
@@ -249,26 +272,31 @@
     <!-- ListenerBD -->
     <div class="mb-3">
       <label class="form-label">Listener BD</label>
-      <input type="text" name="ListenerBD" class="form-control" onfocus="this.title='Informe o listener do banco de dados, se houver.'">
+      <input type="text" name="ListenerBD" class="form-control" data-bs-toggle="tooltip" title="Informe o listener do banco de dados, se houver.">
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o IP/Hostname/DNS do Listener da instancia. (Endereço por onde o backup será realizado)
+      </label>
     </div>
 
     <!-- InfoComplementar -->
     <div class="mb-3">
       <label class="form-label">Informações Complementares</label>
-      <textarea name="InfoComplementar" class="form-control" rows="3" onfocus="this.title='Adicione qualquer informação adicional relevante.'"></textarea>
+      <textarea name="InfoComplementar" class="form-control" rows="3" data-bs-toggle="tooltip" title="Adicione qualquer informação adicional relevante."></textarea>
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Colocar nesse campo qualquer informação útil que não tenha sido tradada/informada nos campos anteriores.
+      </label>
     </div>
 
     <!-- Status -->
+    <select class="form-select" disabled>
+      <option value="Aberto" selected>Aberto</option>
+      <option value="EmAndamento">Em Andamento</option>
+      <option value="Concluido">Concluido</option>
+      <option value="Cancelado">Cancelado</option>
+    </select>
+    <input type="hidden" name="Status" value="Aberto">
     <div class="mb-3">
-      <label class="form-label">Status</label>
-      <select name="Status" class="form-select" required onfocus="this.title='Defina o status inicial da solicitação.'">
-        <option value="Aberto" selected>Aberto</option>
-        <option>EmAndamento</option>
-        <option>Concluido</option>
-        <option>Cancelado</option>
-      </select>
     </div>
-
     <button type="submit" class="btn btn-success">Enviar Solicitação</button>
     <a href="index.php" class="btn btn-secondary">Voltar</a>
   </form>
@@ -281,31 +309,6 @@
     });
   });
 </script>
-<script>
-  function mostrarDica() {
-    const selectElement = document.getElementById('TipoBackup');
-    const dicaElement = document.getElementById('dica-tipobkp');
-    const selectedValue = selectElement.value;
-    let dicaTexto = '';
-
-    switch(selectedValue) {
-        case 'Arquivos':
-            dicaTexto = 'A banana é uma fruta rica em potássio.';
-            break;
-        case 'BancoDadosOnline':
-            dicaTexto = 'A maçã ajuda na digestão e na saúde bucal.';
-            break;
-        case 'MaquinaVirtual':
-            dicaTexto = 'A uva é uma ótima fonte de antioxidantes.';
-            break;
-        default:
-            dicaTexto = '';
-    }
-
-    dicaElement.textContent = dicaTexto;
-  }
-</script>
-
 <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
