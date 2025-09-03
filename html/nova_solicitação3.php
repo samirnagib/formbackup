@@ -6,6 +6,7 @@
   <title>Nova Solicitação</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  
 </head>
 <body class="bg-light">
 
@@ -57,6 +58,12 @@
     <div class="mb-3">
       <label class="form-label">Projeto</label>
       <input type="text" name="Projeto" class="form-control" required data-bs-toggle="tooltip" title="Informe o nome do projeto/compartment/subscription relacionado ao backup.">
+      <label class="form-label" id="dica-tipobkp" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Caso o site seja On Premisses, o campo é opcional, mas nas clouds se faz necessario informar:<br> 
+        -> Subscription [Azure]<br>
+        -> ID projeto [GCP e AWS]<br>
+        -> Compartment [OCI]<br>
+      </label>
     </div>
 
     <!-- Ambiente -->
@@ -95,18 +102,18 @@
         <option>Comum</option>
         <option>Completa</option>
       </select>
+
       <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
         <b>Simples</b>: Backup semanal full (Padrão para Máquinas Virtuais, Fileservers de binários ou arquivos de configuração, Banco de Dados de Desenvolvimento/Homologação)<br>
-        Comum: Backup Semanal Full, Incremental Diario (Banco de dados, Fileservers)<br>
-        Completa: Backup Mensal Full, Semanal Full e Incremental diário (Indicado para Banco de Dados, Fileservers,em ambiente de produção)"
-
+        <b>Comum</b>: Backup Semanal Full, Incremental Diario (Banco de dados, Fileservers)<br>
+        <b>Completa</b>: Backup Mensal Full, Semanal Full e Incremental diário (Indicado para Banco de Dados, Fileservers,em ambiente de produção)"
       </label>
     </div>
 
     <!-- Armazenamento -->
     <div class="mb-3">
       <label class="form-label">Armazenamento</label>
-      <select name="Armazenamento" class="form-select" required onfocus="this.title='Escolha a camada de armazenamento.'">
+      <select name="Armazenamento" class="form-select" required data-bs-toggle="tooltip" title="Escolha a camada de armazenamento.">
         <option value="">Selecione</option>
         <option>Base</option>
         <option>Quente</option>
@@ -114,36 +121,109 @@
         <option>Fria</option>
         <option>Arquivamento</option>
       </select>
+      <div class="container-fluid">
+        <label for="descricao-tabela">Detalhes do Armazenamento</label>
+        <table class="table table-bordered table-sm" id="descricao-tabela" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          <thead class="table-light">
+            <tr>
+              <th>Tipo</th>
+              <th>Localização</th>
+              <th>Retenção Mínima</th>
+              <th>Retenção Máxima</th>
+              <th>Custo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base</td>
+              <td>OnPremisses</td>
+              <td>7 dias</td>
+              <td>30 dias</td>
+              <td><b><i>$$$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Quente</td>
+              <td>Cloud</td>
+              <td>7 dias</td>
+              <td>30 dias</td>
+              <td><b><i>$$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Morna</td>
+              <td>Cloud</td>
+              <td>30/90 dias</td>
+              <td>Não Há</td>
+              <td><b><i>$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Fria</td>
+              <td>Cloud</td>
+              <td>90/180 dias</td>
+              <td>Não Há</td>
+              <td><b><i>$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Arquivamento</td>
+              <td>Cloud</td>
+              <td>365 dias</td>
+              <td>365 dias</td>
+              <td><b><i>$</i></b></td>
+            </tr>
+          </tbody>
+        </table>  
+      </div>
     </div>
-
     <!-- ObjetoProtegido -->
     <div class="mb-3">
-      <label class="form-label">Objeto Protegido</label>
-      <textarea name="ObjetoProtegido" class="form-control" rows="3" required onfocus="this.title='Descreva o objeto que será protegido pelo backup.'"></textarea>
+      <label class="form-label">Qual servidor, Conta de Armazenamento, Banco de Dados a ser protegido?</label>
+      <textarea name="ObjetoProtegido" class="form-control" rows="3" required data-bs-toggle="tooltip" title="Descreva o objeto que será protegido pelo backup."></textarea>
+        <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          <b>Backup do tipo Arquivos</b>: Informar o hostname do servidor, ou conta de armazenamento (<i>cloud</i>);<br>
+          <b>Backup do tipo Máquina Virtual</b>: hypervisor (<i>VMWare, Hyper-V, XCP-ng</i>);<br>
+          <b>Backup do tipo Bando de Dados</b>: Qual SGBD (<i>Oracle, Oracle RAC, SQL Server</i>)<br>
+      </label>
+
     </div>
 
     <!-- VcenterCluster -->
     <div class="mb-3">
       <label class="form-label">vCenter/Cluster</label>
-      <input type="text" name="VcenterCluster" class="form-control" onfocus="this.title='Informe o nome do vCenter ou cluster, se aplicável.'">
+      <input type="text" name="VcenterCluster" class="form-control"  data-bs-toggle="tooltip" title="Informe o nome do vCenter ou cluster, se aplicável.">
+        <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          Informar o vCenter ou Cluster, se for backup de Máquina Virtual.<br> Caso contrário, deixar em branco.<br>
+      </label>
+
     </div>
 
     <!-- CaminhoArquivos -->
     <div class="mb-3">
       <label class="form-label">Caminho dos Arquivos</label>
-      <textarea name="CaminhoArquivos" class="form-control" rows="2" onfocus="this.title='Informe o caminho completo dos arquivos a serem protegidos.'"></textarea>
+      <textarea name="CaminhoArquivos" class="form-control" rows="2" data-bs-toggle="tooltip" title="Informe o caminho completo dos arquivos a serem protegidos.'"></textarea>
+        <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          Em caso de backup do tipo Arquivos, informar o caminho completo dos arquivos a serem protegidos, ou caso for uma<br>
+          cloud storage, informar o container/bucket.<br>
+          Caso contrário, deixar em branco.<br>
+      </label>
+
     </div>
 
     <!-- ServidorBD -->
     <div class="mb-3">
       <label class="form-label">Servidor de Banco de Dados</label>
       <input type="text" name="ServidorBD" class="form-control" onfocus="this.title='Informe o nome do servidor de banco de dados.'">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          Informar os Ips/hostnames dos servidores envolvidos no backup, caso seja um backup de dados, Oracle ou Microsoft SQL Server.<br>
+      </label>
     </div>
 
     <!-- InstanciaBD -->
     <div class="mb-3">
       <label class="form-label">Instância do BD</label>
       <input type="text" name="InstanciaBD" class="form-control" onfocus="this.title='Informe a instância do banco de dados.'">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          Informar os Ips/hostnames das instancias (listeners) de banco de dados, caso seja um backup de dados Oracle ou Microsoft SQL Server.<br>
+      </label>
+
     </div>
 
     <!-- TipoInstanciaBD -->
@@ -151,11 +231,19 @@
       <label class="form-label">Tipo de Instância BD</label>
       <select name="TipoInstanciaBD" class="form-select" onfocus="this.title='Escolha o tipo de instância do banco de dados.'">
         <option value="">Selecione</option>
-        <option>SingleInstance</option>
-        <option>Oracle RAC</option>
-        <option>Cluster</option>
-        <option>AlwaysON</option>
+        <option value="SingleInstance">Single Instance</option>
+        <option value="Oracle RAC">Oracle RAC</option>
+        <option value="Cluster">Cluster</option>
+        <option value="AlwaysON">SQL AlwaysON</option>
       </select>
+        <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+          <b>Single Instance</b>: Instancia de banco de dados única.<br>
+          <b>Oracle RAC</b>: Instância Oracle RAC.<br>
+          <b>Cluster</b>: Instância Microsoft SQL Server em  Cluster.<br>
+          <b>SQL AlwaysON</b>: Instância SQL AlwaysON.<br> (<i>cloud</i>);<br>
+          <b>Backup do tipo Máquina Virtual</b>: hypervisor (<i>VMWare, Hyper-V, XCP-ng</i>);<br>
+          <b>Backup do tipo Bando de Dados</b>: Qual SGBD (<i>Oracle, Oracle RAC, SQL Server</i>)<br>
+      </label>
     </div>
 
     <!-- ListenerBD -->
