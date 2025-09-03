@@ -1332,3 +1332,602 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 Se quiser, posso também **adicionar um reCAPTCHA do Google** para reforçar ainda mais contra SPAM automatizado, mantendo o honeypot e o CSRF como camadas adicionais.  
 Quer que eu já prepare essa integração também?
+Entendido, Samir — vou te entregar um **resumo técnico consolidado** de como está o projeto agora, com todas as últimas alterações que fizemos, incluindo **estrutura de arquivos**, **fluxo**, **dependências** e **configuração** para rodar nas suas VMs.  
+
+---
+
+## 📂 Estrutura final do projeto
+
+```
+/var/www/html/
+│
+├── bootstrap/                  # Bootstrap local
+│   ├── css/bootstrap.min.css
+│   └── js/bootstrap.bundle.min.js
+│
+├── publico.php                  # Formulário público de solicitação
+├── processa_solicitacao.php     # Processa formulário público (com CSRF + honeypot)
+├── login.php                    # Login + criação do primeiro admin
+├── logout.php                   # Encerra sessão
+├── index.php                    # Área restrita (admin de usuários + solicitações)
+├── processa_aprovacao.php       # Aprova/rejeita solicitações e envia e-mail
+└── vendor/                      # PHPMailer via Composer
+    └── autoload.php
+```
+
+**Fora da pasta pública:**
+```
+/var/secure/config.php           # Conexão segura ao banco
+```
+
+---
+
+## 🔹 Fluxo do sistema
+
+1. **Acesso público**  
+   - `publico.php` → formulário para criar solicitação  
+   - Proteção contra SPAM: **honeypot** + **token CSRF**  
+   - `processa_solicitacao.php` → insere no banco e redireciona com mensagem
+
+2. **Acesso restrito**  
+   - `login.php` → autenticação de usuários  
+     - Se não houver usuários, cria o primeiro admin  
+   - `index.php` → só acessa logado  
+     - Administração de usuários (incluir/remover/listar)  
+     - Lista de solicitações com status e ações  
+   - `processa_aprovacao.php` → aprova/rejeita e envia e-mail ao solicitante  
+   - `logout.php` → encerra sessão
+
+---
+
+## 🔹 Banco de dados
+
+### Tabela de solicitações
+```sql
+CREATE TABLE solicitacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    solicitante VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    descricao TEXT NOT NULL,
+    status ENUM('Pendente', 'Aprovado', 'Rejeitado') DEFAULT 'Pendente',
+    comentario TEXT DEFAULT NULL,
+    data_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_decisao DATETIME DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### Tabela de usuários
+```sql
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
+## 🔹 Dependências
+
+- **Apache** (servidor web)
+- **PHP** (>= 7.4) com extensões:
+  - `mysqli`
+  - `mbstring`
+  - `openssl`
+  - `json`
+- **MariaDB/MySQL** (banco de dados)
+- **Composer** (gerenciador de dependências PHP)
+- **PHPMailer** (envio de e-mails via SMTP)
+  ```bash
+  composer require phpmailer/phpmailer
+  ```
+- **Bootstrap local** (CSS/JS na pasta `/bootstrap/`)
+
+---
+
+## 🔹 Configuração do `/var/secure/config.php`
+```php
+<?php
+$db_host = 'IP_DA_VM_BANCO';
+$db_user = 'usuario_backup';
+$db_pass = 'senha_segura';
+$db_name = 'sistema_backup';
+
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+if ($conn->connect_error) {
+    die("Falha na conexão: " . $conn->connect_error);
+}
+$conn->set_charset("utf8mb4");
+?>
+```
+> **Permissões:** `chmod 640 /var/secure/config.php` e dono `root:www-data` (ou usuário do Apache).
+
+---
+
+## 🔹 Configuração de e-mail (Office 365) no `processa_aprovacao.php` e `processa_solicitacao.php`
+```php
+$mail->isSMTP();
+$mail->Host       = 'smtp.office365.com';
+$mail->SMTPAuth   = true;
+$mail->Username   = 'seu_email@seudominio.com';
+$mail->Password   = 'sua_senha_ou_senha_app';
+$mail->SMTPSecure = 'tls';
+$mail->Port       = 587;
+```
+
+---
+
+## 🔹 Segurança implementada
+- **Sessões PHP** para autenticação
+- **Proteção CSRF** no formulário público
+- **Honeypot** contra bots
+- **Senhas com `password_hash()` e `password_verify()`**
+- **Área restrita** só acessível após login
+- **Primeiro usuário admin** criado via `login.php` se tabela estiver vazia
+
+---
+
+## 🔹 Próximos passos para rodar nas VMs
+
+**VM Banco:**
+```bash
+sudo dnf install mariadb-server
+sudo systemctl enable --now mariadb
+mysql_secure_installation
+# Criar banco, tabelas e usuário com permissões restritas
+```
+
+**VM Web:**
+```bash
+sudo dnf install httpd php php-mysqli php-mbstring unzip
+sudo systemctl enable --now httpd
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --reload
+
+# Instalar Composer e PHPMailer
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+cd /var/www/html
+composer require phpmailer/phpmailer
+```
+
+**Bootstrap local:**
+```bash
+mkdir -p /var/www/html/bootstrap/css /var/www/html/bootstrap/js
+# Copiar bootstrap.min.css e bootstrap.bundle.min.js para as pastas correspondentes
+```
+
+---
+
+Samir, se quiser, posso agora te gerar um **pacote .zip** com todos os arquivos já organizados nessa estrutura, pronto para subir na VM Web.  
+Quer que eu prepare esse pacote para você?
+**Ajustando campos**
+
+Estou montando os campos necessários para o formulário, incluindo tipo de armazenamento, ambiente e objetos protegidos. Garantindo a inclusão de CSRF e honeypot, mantendo a simplicidade e a clareza dos dados.
+### Arquivo publico.php completo
+
+```php
+<?php
+require_once '/var/secure/config.php';
+session_start();
+
+// Gera token CSRF
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Nova Solicitação</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+  <h2>📝 Nova Solicitação de Backup</h2>
+
+  <form action="processa_solicitacao.php" method="POST" class="mt-3">
+
+    <!-- Token CSRF -->
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
+    <!-- Honeypot (anti-bot) -->
+    <div style="display:none;">
+      <label>Não preencher este campo</label>
+      <input type="text" name="website" value="">
+    </div>
+
+    <!-- Data da Solicitação -->
+    <div class="mb-3">
+      <label class="form-label">Data da Solicitação</label>
+      <input
+        type="text"
+        name="DataSolicitacao"
+        class="form-control"
+        value="<?php echo date('d/m/Y H:i'); ?>"
+        readonly
+        data-bs-toggle="tooltip"
+        title="Data e hora em que a solicitação está sendo registrada.">
+    </div>
+
+    <!-- Solicitante -->
+    <div class="mb-3">
+      <label class="form-label">Solicitante</label>
+      <input
+        type="text"
+        name="NomeRequisitante"
+        class="form-control"
+        required
+        data-bs-toggle="tooltip"
+        title="Informar o nome completo do responsável, quem será responsável pelas ações e custo desse backup">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o nome completo do responsável, quem será responsável pelas ações e custo desse backup
+      </label>
+    </div>
+
+    <!-- E-mail -->
+    <div class="mb-3">
+      <label class="form-label">E-mail</label>
+      <input
+        type="email"
+        name="EmailRequisitante"
+        class="form-control"
+        required
+        data-bs-toggle="tooltip"
+        title="Informar o email responsável, pode ser o email da equipe.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o email do responsável pelo backup (pode ser o email do grupo)
+      </label>
+    </div>
+
+    <!-- Centro de Custo -->
+    <div class="mb-3">
+      <label class="form-label">Centro de Custo</label>
+      <input
+        type="text"
+        name="CentroCusto"
+        class="form-control"
+        required
+        data-bs-toggle="tooltip"
+        title="Informe o centro de custo responsável, para controle financeiro.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o centro de custo para esse backup, é para efeitos de cobrança (Chargeback).
+      </label>
+    </div>
+
+    <!-- Site -->
+    <div class="mb-3">
+      <label class="form-label">Site</label>
+      <select
+        name="Site"
+        class="form-select"
+        required
+        data-bs-toggle="tooltip"
+        title="Selecione o ambiente de hospedagem.">
+        <option value="">Selecione</option>
+        <option value="OnPremisses">Servidor Local (On-Premisses)</option>
+        <option value="AWS">Amazon Web Services (AWS)</option>
+        <option value="Azure">Microsoft Azure</option>
+        <option value="GCP">Google Cloud Platform (GCP)</option>
+        <option value="OCI">Oracle Cloud Infrastructure (OCI)</option>
+      </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Selecionar qual site está o servidor, banco de dados, máquina virtual, ou fileserver a ser protegido
+      </label>
+    </div>
+
+    <!-- Projeto -->
+    <div class="mb-3">
+      <label class="form-label">Projeto</label>
+      <input
+        type="text"
+        name="Projeto"
+        class="form-control"
+        required
+        data-bs-toggle="tooltip"
+        title="Informe o nome do projeto/compartment/subscription relacionado ao backup.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Caso o site seja On Premisses, o campo é opcional, mas nas clouds se faz necessário informar:<br>
+        -> Subscription [Azure]<br>
+        -> ID projeto [GCP e AWS]<br>
+        -> Compartment [OCI]<br>
+      </label>
+    </div>
+
+    <!-- Ambiente -->
+    <div class="mb-3">
+      <label class="form-label">Ambiente</label>
+      <select
+        name="Ambiente"
+        class="form-select"
+        required
+        data-bs-toggle="tooltip"
+        title="Escolha o tipo de ambiente.">
+        <option value="">Selecione</option>
+        <option value="Producao">Produção</option>
+        <option value="Homologacao">Homologação</option>
+        <option value="Desenvolvimento">Desenvolvimento</option>
+      </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Selecionar qual ambiente está servidor, banco de dados, máquina virtual, ou fileserver a ser protegido.
+      </label>
+    </div>
+
+    <!-- Tipo de Backup -->
+    <div class="mb-3">
+      <label class="form-label">Tipo de Backup</label>
+      <select
+        id="TipoBackup"
+        name="TipoBackup"
+        class="form-select"
+        required
+        data-bs-toggle="tooltip"
+        title="Escolha o tipo de backup desejado.">
+        <option value="">Selecione</option>
+        <option value="Arquivos">Arquivos</option>
+        <option value="BancoDadosOnline">Banco Dados Online</option>
+        <option value="MaquinaVirtual">Máquina Virtual</option>
+      </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Arquivos (Fileserver, DBAAS, Logs)<br>
+        Banco de Dados Online (Oracle, MS SQL Server)<br>
+        Máquina Virtual (VMWare, XCP-ng, Azure VM, e outros)
+      </label>
+    </div>
+
+    <!-- Recorrência -->
+    <div class="mb-3">
+      <label class="form-label">Recorrência</label>
+      <select
+        name="Recorrencia"
+        class="form-select"
+        required
+        data-bs-toggle="tooltip"
+        title="Defina a frequência do backup.">
+        <option value="">Selecione</option>
+        <option>Simples</option>
+        <option>Comum</option>
+        <option>Completa</option>
+      </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        <b>Simples:</b> Backup semanal full (Padrão para Máquinas Virtuais, Fileservers de binários ou arquivos de configuração, Banco de Dados de Desenvolvimento/Homologação)<br>
+        <b>Comum:</b> Backup Semanal Full, Incremental Diário (Banco de dados, Fileservers)<br>
+        <b>Completa:</b> Backup Mensal Full, Semanal Full e Incremental diário (Indicado para Banco de Dados, Fileservers, em ambiente de produção)
+      </label>
+    </div>
+
+    <!-- Armazenamento -->
+    <div class="mb-3">
+      <label class="form-label">Armazenamento</label>
+      <select
+        name="Armazenamento"
+        class="form-select"
+        required
+        data-bs-toggle="tooltip"
+        title="Escolha a camada de armazenamento.">
+        <option value="">Selecione</option>
+        <option>Base</option>
+        <option>Quente</option>
+        <option>Morna</option>
+        <option>Fria</option>
+        <option>Arquivamento</option>
+      </select>
+
+      <div class="container-fluid">
+        <label class="form-label" style="margin-top: 10px;">Detalhes do Armazenamento</label>
+        <table class="table table-bordered table-sm" style="margin-top: 10px; font-family: monospace; font-size: 11px; width: 50%;">
+          <colgroup>
+            <col style="width: 10%;">
+            <col style="width: 15%;">
+            <col style="width: 15%;">
+            <col style="width: 15%;">
+            <col style="width: 10%;">
+          </colgroup>
+          <thead class="table-light">
+            <tr>
+              <th>Tipo</th>
+              <th>Localização</th>
+              <th>Retenção Mínima</th>
+              <th>Retenção Máxima</th>
+              <th>Custo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base</td>
+              <td>OnPremisses</td>
+              <td>7 dias</td>
+              <td>30 dias</td>
+              <td><b><i>$$$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Quente</td>
+              <td>Cloud</td>
+              <td>7 dias</td>
+              <td>30 dias</td>
+              <td><b><i>$$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Morna</td>
+              <td>Cloud</td>
+              <td>30/90 dias</td>
+              <td>Não Há</td>
+              <td><b><i>$$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Fria</td>
+              <td>Cloud</td>
+              <td>90/180 dias</td>
+              <td>Não Há</td>
+              <td><b><i>$$</i></b></td>
+            </tr>
+            <tr>
+              <td>Arquivamento</td>
+              <td>Cloud</td>
+              <td>365 dias</td>
+              <td>365 dias</td>
+              <td><b><i>$</i></b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Objeto Protegido -->
+    <div class="mb-3">
+      <label class="form-label">Qual servidor, Conta de Armazenamento, Banco de Dados a ser protegido?</label>
+      <textarea
+        name="ObjetoProtegido"
+        class="form-control"
+        rows="3"
+        required
+        data-bs-toggle="tooltip"
+        title="Descreva o objeto que será protegido pelo backup."></textarea>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        <b>Backup do tipo Arquivos:</b> Informar o hostname do servidor, ou conta de armazenamento (cloud).<br>
+        <b>Backup do tipo Máquina Virtual:</b> Informar o hypervisor (VMWare, Hyper-V, XCP-ng).<br>
+        <b>Backup do tipo Banco de Dados:</b> Informar o SGBD (Oracle, Oracle RAC, SQL Server).
+      </label>
+    </div>
+
+    <!-- vCenter/Cluster -->
+    <div class="mb-3">
+      <label class="form-label">vCenter/Cluster</label>
+      <input
+        type="text"
+        name="VcenterCluster"
+        class="form-control"
+        data-bs-toggle="tooltip"
+        title="Informe o nome do vCenter ou cluster, se aplicável.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        Informar o vCenter ou Cluster, se for backup de Máquina Virtual. Caso contrário, deixar em branco.
+      </label>
+    </div>
+
+    <!-- Caminho dos Arquivos -->
+    <div class="mb-3">
+      <label class="form-label">Caminho dos Arquivos</label>
+      <textarea
+        name="CaminhoArquivos"
+        class="form-control"
+        rows="2"
+        data-bs-toggle="tooltip"
+        title="Informe o caminho completo dos arquivos a serem protegidos."></textarea>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        Em caso de backup do tipo Arquivos, informar o caminho completo dos arquivos a serem protegidos, ou, se for cloud storage, informar o container/bucket. Caso contrário, deixar em branco.
+      </label>
+    </div>
+
+    <!-- Servidor de Banco de Dados -->
+    <div class="mb-3">
+      <label class="form-label">Servidor de Banco de Dados</label>
+      <input
+        type="text"
+        name="ServidorBD"
+        class="form-control"
+        data-bs-toggle="tooltip"
+        title="Informe o nome do servidor de banco de dados.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        Informar os IPs/hostnames dos servidores envolvidos no backup, caso seja um backup de dados (Oracle ou Microsoft SQL Server).
+      </label>
+    </div>
+
+    <!-- Instância do BD -->
+    <div class="mb-3">
+      <label class="form-label">Instância do BD</label>
+      <input
+        type="text"
+        name="InstanciaBD"
+        class="form-control"
+        data-bs-toggle="tooltip"
+        title="Informe a instância do banco de dados.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        Informar os IPs/hostnames das instâncias (listeners) de banco de dados, caso seja um backup de dados Oracle ou Microsoft SQL Server.
+      </label>
+    </div>
+
+    <!-- Tipo de Instância BD -->
+    <div class="mb-3">
+      <label class="form-label">Tipo de Instância BD</label>
+      <select
+        name="TipoInstanciaBD"
+        class="form-select"
+        data-bs-toggle="tooltip"
+        title="Escolha o tipo de instância do banco de dados.">
+        <option value="">Selecione</option>
+        <option value="SingleInstance">Single Instance</option>
+        <option value="Oracle RAC">Oracle RAC</option>
+        <option value="Cluster">Cluster</option>
+        <option value="AlwaysON">SQL AlwaysON</option>
+      </select>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 11px">
+        <b>Single Instance:</b> Instância de banco de dados única.<br>
+        <b>Oracle RAC:</b> Instância Oracle RAC.<br>
+        <b>Cluster:</b> Instância Microsoft SQL Server em Cluster.<br>
+        <b>SQL AlwaysON:</b> Instância SQL AlwaysON.
+      </label>
+    </div>
+
+    <!-- Listener BD -->
+    <div class="mb-3">
+      <label class="form-label">Listener BD</label>
+      <input
+        type="text"
+        name="ListenerBD"
+        class="form-control"
+        data-bs-toggle="tooltip"
+        title="Informe o listener do banco de dados, se houver.">
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Informar o IP/Hostname/DNS do Listener da instância (endereço por onde o backup será realizado).
+      </label>
+    </div>
+
+    <!-- Informações Complementares -->
+    <div class="mb-3">
+      <label class="form-label">Informações Complementares</label>
+      <textarea
+        name="InfoComplementar"
+        class="form-control"
+        rows="3"
+        data-bs-toggle="tooltip"
+        title="Adicione qualquer informação adicional relevante."></textarea>
+      <label class="form-label" style="margin-top: 10px; font-family: monospace; font-size: 12px">
+        Colocar nesse campo qualquer informação útil que não tenha sido tratada/informada nos campos anteriores.
+      </label>
+    </div>
+
+    <!-- Status (somente visual) -->
+    <div class="mb-3">
+      <label class="form-label">Status</label>
+      <select class="form-select" disabled>
+        <option value="Aberto" selected>Aberto</option>
+        <option value="EmAndamento">Em Andamento</option>
+        <option value="Concluido">Concluído</option>
+        <option value="Cancelado">Cancelado</option>
+      </select>
+      <input type="hidden" name="Status" value="Aberto">
+    </div>
+
+    <!-- Ações -->
+    <div class="mb-3">
+      <button type="submit" class="btn btn-success">Enviar Solicitação</button>
+      <a href="index.php" class="btn btn-secondary">Voltar</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (el) {
+      new bootstrap.Tooltip(el);
+    });
+  });
+</script>
+<script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```

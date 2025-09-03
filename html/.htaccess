@@ -1,0 +1,7 @@
+# Define a página inicial padrão
+DirectoryIndex home.php index.php
+
+# Opcional: Forçar acesso via www
+# RewriteEngine On
+# RewriteCond %{HTTP_HOST} !^www\. [NC]
+# RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [L,R=301]
