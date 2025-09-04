@@ -128,7 +128,7 @@ require_once '/var/secure/config.php';
 
 $id = (int)($_GET['id'] ?? 0);
 
-$stmt = $conn->prepare("SELECT * FROM solicitacoes_backup WHERE id = :id");
+$stmt = $conn->prepare("SELECT * FROM solicitacoes WHERE id = :id");
 $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
 $solicitacao = $stmt->fetch();
