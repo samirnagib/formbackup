@@ -31,7 +31,7 @@ $email = $solicitacao['EmailRequisitante'];
 $status = $solicitacao['Status'];
 
 // Define se os botões devem ser desabilitados
-$desabilitarBotoes = in_array($status, ['EmAndamento', 'Cancelado', 'Completo']);
+$desabilitarBotoes = in_array($status, ['Cancelado', 'Completo']);
 
 
 // Ação: Aprovar
@@ -100,7 +100,7 @@ if ($acao === 'finalizar') {
     if ($desabilitarBotoes) {
         die("Ação não permitida para o status atual da solicitação.");
     }
-    $conn->prepare("UPDATE solicitacoes SET Status='Completo' WHERE id=:id")
+    $conn->prepare("UPDATE solicitacoes SET Status='Concluido' WHERE id=:id")
          ->execute([':id' => $id]);
 
     $mensagem = "Olá {$nome},\n\nA solicitação número {$id} foi finalizada com sucesso.";
