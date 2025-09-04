@@ -90,7 +90,7 @@ if ($acao === 'rejeitar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mensagem = "Olá {$nome},\n\nA requisição número {$id} foi rejeitada pelo motivo: {$motivo}";
     enviarEmail($email, "Solicitação #{$id} Rejeitada", $mensagem,"samirnagib.service@gmail.com");
-    registra_log($conn, $id, "Usuário: {$_SESSION['usuario']} rejeitou a requisição número {$id} pelo motivo: {$motivo}");
+    registra_log($conn, $id, "Usuário: {$_SESSION['usuario_nome']} rejeitou a requisição número {$id} pelo motivo: {$motivo}");
     header("Location: listar_solicitacoes.php");
     exit;
 }
@@ -105,7 +105,7 @@ if ($acao === 'finalizar') {
 
     $mensagem = "Olá {$nome},\n\nA solicitação número {$id} foi finalizada com sucesso.";
     enviarEmail($email, "Solicitação #{$id} Finalizada", $mensagem,"samirnagib.service@gmail.com");
-    registra_log($conn, $id, "Usuário: {$_SESSION['usuario']} finalizou a solicitação número {$id} com sucesso.");
+    registra_log($conn, $id, "Usuário: {$_SESSION['usuario_nome']} finalizou a solicitação número {$id} com sucesso.");
     header("Location: listar_solicitacoes.php");
     exit;
 }
