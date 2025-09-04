@@ -1,37 +1,50 @@
 <?php
-// Protege a página — só acessa se estiver logado
 require_once '/var/secure/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Painel do Sistema</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-        header { background: #007BFF; color: #fff; padding: 15px; }
-        header h1 { margin: 0; font-size: 20px; }
-        nav { background: #e9ecef; padding: 10px; }
-        nav a {
-            margin-right: 15px; text-decoration: none; color: #007BFF;
-            font-weight: bold;
-        }
-        nav a:hover { text-decoration: underline; }
-        main { padding: 20px; }
-    </style>
+<meta charset="UTF-8">
+<title>Painel Administrativo</title>
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<header>
-    <h1>Bem-vindo, <?= htmlspecialchars($_SESSION['usuario_nome']) ?>!</h1>
-</header>
-<nav>
-    <a href="listar_usuarios.php">📋 Listar Usuários</a>
-    <a href="adicionar_usuario.php">➕ Adicionar Usuário</a>
-    <a href="logout.php">🚪 Sair</a>
-</nav>
-<main>
-    <h2>Painel de Controle</h2>
-    <p>Escolha uma das opções acima para gerenciar o sistema.</p>
-</main>
+<body class="bg-light">
+<div class="container py-4">
+    <h1>⚙️ Painel Administrativo</h1>
+    <p>Bem-vindo, <?= htmlspecialchars($_SESSION['usuario']) ?>!</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-primary mb-3">
+                <div class="card-header bg-primary text-white">👥 Administração de Usuários</div>
+                <div class="card-body">
+                    <p>Gerencie contas de acesso ao sistema.</p>
+                    <a href="listar_usuarios.php" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">💾 Solicitações de Backup</div>
+                <div class="card-body">
+                    <p>Visualize e gerencie solicitações enviadas pelo formulário público.</p>
+                    <a href="listar_solicitacoes.php" class="btn btn-success">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-info mb-3">
+                <div class="card-header bg-info text-black">📋 Auditoria</div>
+                <div class="card-body">
+                    <p>Visualize e gerencie os logs de auditoria.</p>
+                    <a href="auditoria.php" class="btn btn-success">Acessar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="logout.php" class="btn btn-danger">Sair</a>
+</div>
 </body>
 </html>

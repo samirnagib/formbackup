@@ -37,11 +37,15 @@ CREATE TABLE solicitacoes (
     Status ENUM('Aberto','EmAndamento','Concluido','Cancelado') NOT NULL DEFAULT 'Aberto'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE solicitacoes_backup (
+CREATE TABLE logs_auditoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL,
-    mensagem TEXT,
-    data_solicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'Pendente'
+    acao VARCHAR(255) NOT NULL,
+    id_solicitacao INT,
+    ip VARCHAR(45),
+    user_agent TEXT,
+    data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (id_solicitacao),
+    FOREIGN KEY (id_solicitacao) REFERENCES solicitacoes(id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
 );

@@ -41,6 +41,15 @@ require_once '/var/secure/auth.php';
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">📋 Auditoria</div>
+                <div class="card-body">
+                    <p>Visualize e gerencie os logs de auditoria.</p>
+                    <a href="auditoria.php" class="btn btn-success">Acessar</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <a href="logout.php" class="btn btn-danger">Sair</a>

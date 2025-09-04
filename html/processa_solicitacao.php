@@ -29,11 +29,11 @@ foreach ($_POST as $k => $v) {
 
 try {
     // Inserir no banco
-    $sql = "INSERT INTO solicitacoes_backup (
+    $sql = "INSERT INTO solicitacoes (
                 NomeRequisitante, EmailRequisitante, CentroCusto, Site, Projeto,
                 Ambiente, TipoBackup, Recorrencia, Armazenamento, ObjetoProtegido,
                 VcenterCluster, CaminhoArquivos, ServidorBD, InstanciaBD, TipoInstanciaBD,
-                ListenerBD, InfoComplementar, status, data_solicitacao
+                ListenerBD, InfoComplementar, status, DataSolicitacao
             ) VALUES (
                 :NomeRequisitante, :EmailRequisitante, :CentroCusto, :Site, :Projeto,
                 :Ambiente, :TipoBackup, :Recorrencia, :Armazenamento, :ObjetoProtegido,
