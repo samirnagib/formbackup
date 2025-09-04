@@ -1,6 +1,7 @@
 <?php
 require_once '/var/secure/config.php';
 require '/var/www/html/formbkp/vendor/autoload.php';
+require '/var/secure/funcao.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -33,12 +34,12 @@ try {
                 NomeRequisitante, EmailRequisitante, CentroCusto, Site, Projeto,
                 Ambiente, TipoBackup, Recorrencia, Armazenamento, ObjetoProtegido,
                 VcenterCluster, CaminhoArquivos, ServidorBD, InstanciaBD, TipoInstanciaBD,
-                ListenerBD, InfoComplementar, status, DataSolicitacao
+                ListenerBD, InfoComplementar, Status, DataSolicitacao
             ) VALUES (
                 :NomeRequisitante, :EmailRequisitante, :CentroCusto, :Site, :Projeto,
                 :Ambiente, :TipoBackup, :Recorrencia, :Armazenamento, :ObjetoProtegido,
                 :VcenterCluster, :CaminhoArquivos, :ServidorBD, :InstanciaBD, :TipoInstanciaBD,
-                :ListenerBD, :InfoComplementar, 'Pendente', NOW()
+                :ListenerBD, :InfoComplementar, 'Aberto', NOW()
             )";
     $stmt = $conn->prepare($sql);
     foreach ($dados as $k => $v) {
@@ -47,42 +48,12 @@ try {
     $stmt->execute();
 
     $idSolicitacao = $conn->lastInsertId();
-
-    // Função para enviar e-mail
-    function enviarEmail($destinatario, $nomeDest, $assunto, $mensagem, $bcc = null) {
-        $mail = new PHPMailer(true);
-        try {
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'samirnagib.service@gmail.com';
-            $mail->Password   = 'zgdaghogmhswtxrp';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
-
-            $mail->setFrom('samirnagib.service@gmail.com', 'Sistema de Backups');
-            $mail->addAddress($destinatario, $nomeDest);
-            if ($bcc) {
-                $mail->addBCC($bcc);
-            }
-
-            $mail->isHTML(true);
-            $mail->Subject = $assunto;
-            $mail->Body    = nl2br($mensagem);
-
-            $mail->send();
-            return true;
-        } catch (Exception $e) {
-            error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
-            return false;
-        }
-    }
-
+  
     // E-mail para requisitante
     $msgRequisitante = "Olá {$dados['NomeRequisitante']},\n\n".
-                       "Sua solicitação de backup (#{$idSolicitacao}) foi registrada com sucesso e está com status Pendente.\n".
+                       "Sua solicitação de backup (#{$idSolicitacao}) foi registrada com sucesso e está com status Aberto.\n".
                        "Em breve nossa equipe entrará em contato.\n\n".
-                       "Atenciosamente,\nEquipe de Backups";
+                       "Atenciosamente,\n Equipe de Backup";
     enviarEmail($dados['EmailRequisitante'], $dados['NomeRequisitante'], "Confirmação de Solicitação de Backup", $msgRequisitante);
 
     // E-mail para equipe interna
@@ -96,20 +67,12 @@ try {
                   "Armazenamento: {$dados['Armazenamento']}\n".
                   "Objeto Protegido: {$dados['ObjetoProtegido']}\n\n".
                   "Acesse o painel para mais detalhes.";
-    enviarEmail('suporte@seudominio.com', 'Equipe de Backups', "Nova Solicitação de Backup #{$idSolicitacao}", $msgInterno);
+    enviarEmail('samir.nagib@gmail.com', 'Equipe de Backup', "Nova Solicitação de Backup #{$idSolicitacao}", $msgInterno);
 
     // Registrar log de auditoria
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'desconhecido';
-    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'desconhecido';
-    $logSql = "INSERT INTO logs_auditoria (acao, id_solicitacao, ip, user_agent, data_hora)
-               VALUES (:acao, :id_solicitacao, :ip, :user_agent, NOW())";
-    $stmtLog = $conn->prepare($logSql);
-    $stmtLog->execute([
-        ':acao' => 'Nova solicitação registrada via público',
-        ':id_solicitacao' => $idSolicitacao,
-        ':ip' => $ip,
-        ':user_agent' => $userAgent
-    ]);
+
+    registra_log($conn, $idSolicitacao, 'Nova solicitação registrada. Submetida por ' . $dados['NomeRequisitante']);
+
 
     redir('sucesso');
 

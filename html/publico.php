@@ -126,11 +126,11 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
         <div class="col-md-4">
             <label class="form-label">Tipo Instância BD</label>
             <select name="TipoInstanciaBD" class="form-select">
-                <option value="">Selecione...</option>
-                <option>SingleInstance</option>
-                <option>Oracle RAC</option>
-                <option>Cluster</option>
-                <option>AlwaysON</option>
+                <option value="NAO_SE_APLICA">Selecione...</option>
+                <option value="SingleInstance">Single Instance (MS SQL Server ou Oracle)</option>
+                <option value="Oracle RAC">Oracle RAC</option>
+                <option value="Cluster">Cluster Microsoft</option>
+                <option value="AlwaysON">MS SQL Server AlwaysON</option>
             </select>
         </div>
 

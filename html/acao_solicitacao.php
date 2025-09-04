@@ -1,9 +1,10 @@
 <?php
 require_once '/var/secure/auth.php';
 require_once '/var/secure/config.php';
+require '/var/www/html/formbkp/vendor/autoload.php';
+require '/var/secure/funcao.php';
 
 // Carrega o autoloader do Composer para o PHPMailer
-require '/var/www/html/formbkp/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -16,7 +17,7 @@ if ($id <= 0 || !in_array($acao, ['aprovar', 'rejeitar', 'finalizar'])) {
 }
 
 // Busca dados da solicitação
-$stmt = $conn->prepare("SELECT NomeRequisitante, EmailRequisitante FROM solicitacoes_backup WHERE id = :id");
+$stmt = $conn->prepare("SELECT NomeRequisitante, EmailRequisitante, Status FROM solicitacoes WHERE id = :id");
 $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
 $solicitacao = $stmt->fetch();
@@ -27,44 +28,23 @@ if (!$solicitacao) {
 
 $nome  = $solicitacao['NomeRequisitante'];
 $email = $solicitacao['EmailRequisitante'];
+$status = $solicitacao['Status'];
 
-// Função para enviar e-mail
-function enviarEmail($destinatario, $assunto, $mensagem) {
-    $mail = new PHPMailer(true);
-    try {
-        // Configurações do servidor SMTP
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'samirnagib.service@gmail.com';
-        $mail->Password   = 'sua_senha_ou_senha_app';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+// Define se os botões devem ser desabilitados
+$desabilitarBotoes = in_array($status, ['EmAndamento', 'Cancelado', 'Completo']);
 
-        // Remetente e destinatário
-        $mail->setFrom('seu_email@seudominio.com', 'Sistema de Backups');
-        $mail->addAddress($destinatario);
-
-        // Conteúdo
-        $mail->isHTML(true);
-        $mail->Subject = $assunto;
-        $mail->Body    = nl2br($mensagem);
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
-        return false;
-    }
-}
 
 // Ação: Aprovar
 if ($acao === 'aprovar') {
-    $conn->prepare("UPDATE solicitacoes_backup SET status='Em andamento' WHERE id=:id")
+     if ($desabilitarBotoes) {
+        die("Ação não permitida para o status atual da solicitação.");
+    }
+    $conn->prepare("UPDATE solicitacoes SET Status='EmAndamento' WHERE id=:id")
          ->execute([':id' => $id]);
 
     $mensagem = "Olá {$nome},\n\nA requisição número {$id} foi aprovada e está agora em andamento.";
-    enviarEmail($email, "Solicitação #{$id} Aprovada", $mensagem);
+    enviarEmail($email, "Solicitação #{$id} Aprovada", $mensagem,"samirnagib.service@gmail.com");
+    registra_log($conn, $id, 'Solicitação aprovada pelo administrador.');
 
     header("Location: listar_solicitacoes.php");
     exit;
@@ -72,6 +52,10 @@ if ($acao === 'aprovar') {
 
 // Ação: Rejeitar (formulário de motivo)
 if ($acao === 'rejeitar' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    if ($desabilitarBotoes) {
+        die("Ação não permitida para o status atual da solicitação.");
+    }
+
     ?>
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -101,24 +85,27 @@ if ($acao === 'rejeitar' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Processa rejeição
 if ($acao === 'rejeitar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $motivo = trim($_POST['motivo']);
-    $conn->prepare("UPDATE solicitacoes_backup SET status='Cancelado' WHERE id=:id")
+    $conn->prepare("UPDATE solicitacoes SET Status='Cancelado' WHERE id=:id")
          ->execute([':id' => $id]);
 
     $mensagem = "Olá {$nome},\n\nA requisição número {$id} foi rejeitada pelo motivo: {$motivo}";
-    enviarEmail($email, "Solicitação #{$id} Rejeitada", $mensagem);
-
+    enviarEmail($email, "Solicitação #{$id} Rejeitada", $mensagem,"samirnagib.service@gmail.com");
+    registra_log($conn, $id, "Usuário: {$_SESSION['usuario']} rejeitou a requisição número {$id} pelo motivo: {$motivo}");
     header("Location: listar_solicitacoes.php");
     exit;
 }
 
 // Ação: Finalizar
 if ($acao === 'finalizar') {
-    $conn->prepare("UPDATE solicitacoes_backup SET status='Completo' WHERE id=:id")
+    if ($desabilitarBotoes) {
+        die("Ação não permitida para o status atual da solicitação.");
+    }
+    $conn->prepare("UPDATE solicitacoes SET Status='Completo' WHERE id=:id")
          ->execute([':id' => $id]);
 
     $mensagem = "Olá {$nome},\n\nA solicitação número {$id} foi finalizada com sucesso.";
-    enviarEmail($email, "Solicitação #{$id} Finalizada", $mensagem);
-
+    enviarEmail($email, "Solicitação #{$id} Finalizada", $mensagem,"samirnagib.service@gmail.com");
+    registra_log($conn, $id, "Usuário: {$_SESSION['usuario']} finalizou a solicitação número {$id} com sucesso.");
     header("Location: listar_solicitacoes.php");
     exit;
 }

@@ -7,7 +7,7 @@ $id = (int)($_GET['id'] ?? 0);
 $stmt = $conn->prepare("SELECT * FROM solicitacoes WHERE id = :id");
 $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
-$solicitacao = $stmt->fetch();
+$solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$solicitacao) {
     die("Solicitação não encontrada.");
@@ -29,8 +29,15 @@ if (!$solicitacao) {
         <?php endforeach; ?>
     </ul>
     <div class="mt-3">
-        <a href="acao_solicitacao.php?id=<?= $solicitacao['id'] ?>&acao=aprovar" class="btn btn-success">Aprovar</a>
-        <a href="acao_solicitacao.php?id=<?= $solicitacao['id'] ?>&acao=rejeitar" class="btn btn-warning">Rejeitar</a>
+        <a href="acao_solicitacao.php?id=<?= $solicitacao['ID'] ?>&acao=aprovar" class="btn btn-success<?= $desabilitarBotoes ? 'disabled' : '' ?>" 
+           <?= $desabilitarBotoes ? 'aria-disabled="true"' : '' ?>>
+           Aprovar</a>
+        <a href="acao_solicitacao.php?id=<?= $solicitacao['ID'] ?>&acao=rejeitar" class="btn btn-warning<?= $desabilitarBotoes ? 'disabled' : '' ?>" 
+           <?= $desabilitarBotoes ? 'aria-disabled="true"' : '' ?>>
+        Rejeitar</a>
+        <a href="acao_solicitacao.php?id=<?= $solicitacao['ID'] ?>&acao=finalizar" class="btn btn-primary<?= $desabilitarBotoes ? 'disabled' : '' ?>" 
+           <?= $desabilitarBotoes ? 'aria-disabled="true"' : '' ?>>
+        Finalizar</a>
     </div>
     <a href="listar_solicitacoes.php" class="btn btn-secondary mt-3">⬅ Voltar</a>
 </div>

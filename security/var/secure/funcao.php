@@ -1,8 +1,6 @@
 <?php
 // Carrega a biblioteca PHPMailer
-require '/path/to/PHPMailer/src/PHPMailer.php';
-require '/path/to/PHPMailer/src/SMTP.php';
-require '/path/to/PHPMailer/src/Exception.php';
+require '/var/www/html/formbkp/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
@@ -25,14 +23,14 @@ function enviarEmail($destinatario, $nomeDest, $assunto, $mensagem, $bcc = null)
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'seu-email@gmail.com'; // Altere para seu e-mail
-        $mail->Password   = 'sua-senha-de-app';     // Altere para a senha de app
+        $mail->Username   = 'samirnagib.service@gmail.com'; // Altere para seu e-mail
+        $mail->Password   = 'zgdaghogmhswtxrp';     // Altere para a senha de app
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->CharSet    = 'UTF-8'; // Garante que acentuação funcione
 
         // Remetente e destinatários
-        $mail->setFrom('seu-email@gmail.com', 'Sistema de Backups');
+        $mail->setFrom('samirnagib.service@gmail.com', 'Sistema de Backups');
         $mail->addAddress($destinatario, $nomeDest);
         if ($bcc) {
             $mail->addBCC($bcc);
@@ -51,4 +49,21 @@ function enviarEmail($destinatario, $nomeDest, $assunto, $mensagem, $bcc = null)
         error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
         return false;
     }
+}
+
+function registra_log($conn, $idSolicitacao, $acao) {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'desconhecido';
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'desconhecido';
+
+    $logSql = "INSERT INTO logs_auditoria (acao, id_solicitacao, ip, user_agent, data_hora)
+               VALUES (:acao, :id_solicitacao, :ip, :user_agent, NOW())";
+
+    $stmtLog = $conn->prepare($logSql);
+
+    $stmtLog->execute([
+        ':acao' => $acao,
+        ':id_solicitacao' => $idSolicitacao,
+        ':ip' => $ip,
+        ':user_agent' => $userAgent
+    ]);
 }

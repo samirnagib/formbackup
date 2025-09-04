@@ -11,7 +11,7 @@ require_once '/var/secure/auth.php';
 <body class="bg-light">
 <div class="container py-4">
     <h1>⚙️ Painel Administrativo</h1>
-    <p>Bem-vindo, <?= htmlspecialchars($_SESSION['usuario']) ?>!</p>
+    <p>Bem-vindo, <?= htmlspecialchars($_SESSION['usuario_nome']) ?>!</p>
 
     <div class="row">
         <div class="col-md-6">

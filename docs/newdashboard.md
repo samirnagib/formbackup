@@ -161,7 +161,7 @@ require_once '/var/secure/config.php';
 $id = (int)($_GET['id'] ?? 0);
 
 if ($id > 0) {
-    $stmt = $conn->prepare("DELETE FROM solicitacoes_backup WHERE id = :id");
+    $stmt = $conn->prepare("DELETE FROM solicitacoes WHERE id = :id");
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 }
